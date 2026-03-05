@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 
 	"github.com/gotd/td/tg"
 	mcp "github.com/metoro-io/mcp-golang"
@@ -30,17 +31,19 @@ func (c *Client) SendDraft(args DraftArguments) (*mcp.ToolResponse, error) {
 			return fmt.Errorf("get inputPeer from name: %w", err)
 		}
 
-		ok, err = api.MessagesSaveDraft(ctx, &tg.MessagesSaveDraftRequest{
-			Peer:    inputPeer,
-			Message: args.Text,
+		_, err = api.MessagesSendMessage(ctx, &tg.MessagesSendMessageRequest{
+			Peer:     inputPeer,
+			Message:  args.Text,
+			RandomID: rand.Int63(),
 		})
 		if err != nil {
-			return fmt.Errorf("failed to get history: %w", err)
+			return fmt.Errorf("failed to send message: %w", err)
 		}
+		ok = true
 
 		return nil
 	}); err != nil {
-		return nil, errors.Wrap(err, "failed to get history")
+		return nil, errors.Wrap(err, "failed to send message")
 	}
 
 	jsonData, err := json.Marshal(DraftResponse{Success: ok})
