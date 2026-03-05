@@ -29,8 +29,9 @@ const (
 
 // nolint:lll
 type DialogsArguments struct {
-	Offset     string `json:"offset,omitempty" jsonschema:"description=Offset for continuation"`
-	OnlyUnread bool   `json:"only_unread,omitempty" jsonschema:"description=Include only dialogs with unread mark"`
+	Offset     string     `json:"offset,omitempty" jsonschema:"description=Offset for continuation"`
+	OnlyUnread bool       `json:"only_unread,omitempty" jsonschema:"description=Include only dialogs with unread mark"`
+	Type       DialogType `json:"type,omitempty" jsonschema:"description=Filter by dialog type: user\\, bot\\, chat\\, channel"`
 }
 
 type MessageInfo struct {
@@ -88,7 +89,7 @@ func (c *Client) GetDialogs(args DialogsArguments) (*mcp.ToolResponse, error) {
 		return nil, errors.Wrap(err, "failed to get dialogs")
 	}
 
-	d, err := newDialogs(dc, args.OnlyUnread)
+	d, err := newDialogs(dc, args)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get dialogs")
 	}
@@ -118,9 +119,10 @@ type dialogs struct {
 
 	//opts
 	onlyUnread bool
+	typeFilter DialogType
 }
 
-func newDialogs(rawD tg.MessagesDialogsClass, onlyUnread bool) (*dialogs, error) {
+func newDialogs(rawD tg.MessagesDialogsClass, args DialogsArguments) (*dialogs, error) {
 	var d dialogs
 	switch dT := rawD.(type) {
 	case *tg.MessagesDialogs:
@@ -171,7 +173,8 @@ func newDialogs(rawD tg.MessagesDialogsClass, onlyUnread bool) (*dialogs, error)
 		}
 	}
 
-	d.onlyUnread = onlyUnread
+	d.onlyUnread = args.OnlyUnread
+	d.typeFilter = args.Type
 
 	return &d, nil
 }
@@ -186,6 +189,10 @@ func (d *dialogs) Info() []DialogInfo {
 		}
 
 		if d.onlyUnread && dialogItem.UnreadCount == 0 {
+			continue
+		}
+
+		if d.typeFilter != DialogTypeAll && d.getType(dialogItem) != d.typeFilter {
 			continue
 		}
 
