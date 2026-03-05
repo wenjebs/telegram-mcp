@@ -43,11 +43,11 @@ checksum:
 
 brews:
   - name: telegram-mcp
-    homepage: "https://github.com/chaindead/telegram-mcp"
+    homepage: "https://github.com/wenjebs/telegram-mcp"
     description: "Telegram MCP server for AI assistants"
     license: "MIT"
     repository:
-      owner: chaindead
+      owner: wenjebs
       name: homebrew-tap
     install: |
       bin.install "telegram-mcp"
