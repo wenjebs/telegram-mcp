@@ -22,6 +22,16 @@ No test suite exists yet. Verification is done via the `--dry` flag.
 
 After rebuilding, **restart the MCP client** (e.g. Claude Desktop) to reload the binary — it does not hot-reload.
 
+## Release
+
+Releases are automated via GitHub Actions (`.github/workflows/release.yml`). To publish a new release:
+
+```bash
+git tag v0.x.0 && git push origin v0.x.0
+```
+
+Pushing a tag triggers goreleaser on CI, which builds cross-platform binaries, creates a GitHub release, and updates the Homebrew tap. No manual `goreleaser` invocation needed.
+
 ## Architecture
 
 This is a Go MCP server that bridges the Telegram MTProto API to AI assistants via stdio transport.
@@ -38,7 +48,7 @@ This is a Go MCP server that bridges the Telegram MTProto API to AI assistants v
 | `client.go` | `Client` struct; `T()` creates a fresh `telegram.Client` per call (stateless, `NoUpdates: true`) |
 | `dialogs.go` | `GetDialogs` tool — fetches dialog list, filters by `OnlyUnread` and/or `Type` (`user/bot/chat/channel`) |
 | `dialogs_offset.go` | Pagination cursor serialized as `"type-id-msgid-date"` string |
-| `users.go` | `GetUsers` tool — users-only subset of dialogs with similarity search (exact > prefix > contains scoring) |
+| `users.go` | `GetUsers` tool — users-only subset of dialogs with similarity search (exact > prefix > contains > token > fuzzy scoring); fetches all dialogs when a search query is provided |
 | `history.go` | `GetHistory` tool — fetches message history; resolves peer names via `getInputPeerFromName` |
 | `me.go` | `GetMe` tool |
 | `read.go` | `ReadHistory` tool — marks dialog as read |
