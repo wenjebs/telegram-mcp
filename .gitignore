@@ -69,6 +69,7 @@ log_file.yaml
 session.json
 bin/
 .env
+env/.env
 .cursor/
 log.txt
 mcp.log
