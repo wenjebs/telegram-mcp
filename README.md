@@ -47,6 +47,23 @@ This writes a session file to `~/.telegram-mcp/session.json`.
 brew install wenjebs/tap/telegram-mcp
 ```
 
+### Local development
+
+Copy the example env file and fill in your credentials:
+
+```bash
+cp env/.env.example env/.env
+# edit env/.env with your TG_APP_ID and TG_API_HASH
+```
+
+Then source it when running locally:
+
+```bash
+source env/.env && go run ./. --app-id $TG_APP_ID --api-hash $TG_API_HASH
+```
+
+The `env/` folder is gitignored — never commit your credentials.
+
 ### 4. Or build from source
 
 ```bash
