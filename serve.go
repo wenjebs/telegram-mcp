@@ -114,7 +114,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("register dialogs tool: %w", err)
 	}
 
-	err = server.RegisterTool("tg_send", "Send message to dialog", client.SendDraft)
+	err = server.RegisterTool("tg_send", "Send message to a dialog. IMPORTANT: Before calling this tool, always use tg_users (for people/bots) or tg_groups (for group chats) to find the recipient and get their exact username identifier. Use the 'username' field from those results as the 'name' parameter here.", client.SendDraft)
 	if err != nil {
 		return fmt.Errorf("register dialogs tool: %w", err)
 	}

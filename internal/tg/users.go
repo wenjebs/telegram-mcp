@@ -47,12 +47,16 @@ func (c *Client) GetUsers(args UsersArguments) (*mcp.ToolResponse, error) {
 		limit = DefaultUsersLimit
 	}
 
+	// When searching, fetch all users so the query isn't limited to the most
+	// recent `limit` dialogs. Without a query, stop once we have enough.
+	fetchAll := args.Search != ""
+
 	var infos []DialogInfo
 	client := c.T()
 	if err := client.Run(context.Background(), func(ctx context.Context) (err error) {
 		api := client.API()
 		cur := offset
-		for len(infos) < limit {
+		for fetchAll || len(infos) < limit {
 			dc, err := api.MessagesGetDialogs(ctx, &tg.MessagesGetDialogsRequest{
 				OffsetPeer: cur.Peer,
 				OffsetID:   cur.MsgID,
@@ -87,7 +91,20 @@ func (c *Client) GetUsers(args UsersArguments) (*mcp.ToolResponse, error) {
 	for _, info := range infos {
 		rank := min(matchRank(info.Title, query), matchRank(info.Name, query))
 		if query != "" && rank < 0 {
-			continue
+			// Fall back to token matching across combined title+username.
+			// e.g. query "yim jian bing" matches title="jian bing" + username="yimyamyum".
+			combined := strings.ToLower(info.Title + " " + info.Name)
+			allMatch := true
+			for _, tok := range strings.Fields(query) {
+				if !strings.Contains(combined, tok) {
+					allMatch = false
+					break
+				}
+			}
+			if !allMatch {
+				continue
+			}
+			rank = 4
 		}
 		users = append(users, userScore{
 			UserInfo: UserInfo{Title: info.Title, Username: info.Name},

@@ -12,7 +12,7 @@ import (
 )
 
 type DraftArguments struct {
-	Name string `json:"name" jsonschema:"required,description=Name of the dialog"`
+	Name string `json:"name" jsonschema:"required,description=Username identifier of the dialog — use the 'username' field returned by tg_users or tg_groups"`
 	Text string `json:"text" jsonschema:"required,description=Plain text of the message"`
 }
 
