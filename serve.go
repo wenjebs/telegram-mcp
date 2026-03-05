@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/chaindead/telegram-mcp/internal/tg"
 	"github.com/invopop/jsonschema"
@@ -97,12 +99,22 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("register dialogs tool: %w", err)
 	}
 
+	err = server.RegisterTool("tg_users", "Get list of users you can message, with optional name search", client.GetUsers)
+	if err != nil {
+		return fmt.Errorf("register users tool: %w", err)
+	}
+
+	err = server.RegisterTool("tg_groups", "Get list of group chats (not channels) with optional name search", client.GetGroups)
+	if err != nil {
+		return fmt.Errorf("register groups tool: %w", err)
+	}
+
 	err = server.RegisterTool("tg_dialog", "Get messages of telegram dialog", client.GetHistory)
 	if err != nil {
 		return fmt.Errorf("register dialogs tool: %w", err)
 	}
 
-	err = server.RegisterTool("tg_send", "Send draft message to dialog", client.SendDraft)
+	err = server.RegisterTool("tg_send", "Send message to dialog", client.SendDraft)
 	if err != nil {
 		return fmt.Errorf("register dialogs tool: %w", err)
 	}
@@ -116,7 +128,12 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("serve: %w", err)
 	}
 
-	<-ctx.Done()
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	select {
+	case <-sigChan:
+	case <-ctx.Done():
+	}
 
 	return nil
 }
